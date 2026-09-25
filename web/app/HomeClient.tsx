@@ -12,6 +12,7 @@ import CreateBattleModal from "@/components/game/CreateBattleModal";
 import JoinBattleModal from "@/components/game/JoinBattleModal";
 import AuthModal from "@/components/game/AuthModal";
 import type { BattleCard } from "@/lib/battles";
+import { countActiveBattles, fetchPublicBattles } from "@/lib/battles";
 import { getToken } from "@/lib/api";
 import { api } from "@/lib/api";
 
@@ -21,9 +22,18 @@ export default function HomeClient() {
   const [joinOpen, setJoinOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<"create" | "join" | null>(null);
+  const [battleCount, setBattleCount] = useState(0);
+  const [battlesAreDemo, setBattlesAreDemo] = useState(true);
 
   useEffect(() => {
     setShowIntro(!hasSeenIntro());
+  }, []);
+
+  useEffect(() => {
+    fetchPublicBattles().then((list) => {
+      setBattleCount(countActiveBattles(list));
+      setBattlesAreDemo(!process.env.NEXT_PUBLIC_API_URL || list.every((b) => b.demo));
+    });
   }, []);
 
   const requireAuth = useCallback((action: "create" | "join") => {
@@ -94,11 +104,18 @@ export default function HomeClient() {
   return (
     <>
       {showIntro ? <IntroScreen onEnter={() => setShowIntro(false)} /> : null}
-      <div className="sm-page-shell">
+      <div className="sm-page-shell sm-page-enter">
         <BackgroundFX />
         <SiteNav />
         <main className="sm-main" style={{ paddingTop: "var(--sm-nav-height)" }}>
-          <Hero />
+          <Hero
+            activeBattles={battleCount}
+            demoBattles={battlesAreDemo}
+            onPlay={() => {
+              document.getElementById("battles")?.scrollIntoView({ behavior: "smooth" });
+            }}
+            onCreate={() => requireAuth("create")}
+          />
           <StoryExperience />
           <LiveBattlesSection
             onJoin={handleJoinBattle}

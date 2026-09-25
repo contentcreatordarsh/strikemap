@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 import GameShell from "@/components/game/GameShell";
-import GameMap from "@/components/game/GameMap";
 import GameHUD from "@/components/game/GameHUD";
 import { useGameSocket } from "@/hooks/useGameSocket";
+import { useGameTimer } from "@/hooks/useGameTimer";
 import { ConnectingState, SignalLost, BattleComplete } from "@/components/game/ConnectionStates";
 import type { TeamColor } from "@/lib/contracts/game";
+
+const GameMap = dynamic(() => import("@/components/game/GameMap"), { ssr: false });
 
 function readParams(): URLSearchParams {
   if (typeof window === "undefined") return new URLSearchParams();
@@ -15,7 +18,6 @@ function readParams(): URLSearchParams {
 
 export default function GameClient() {
   const [gameId, setGameId] = useState("");
-  const [started, setStarted] = useState(true);
 
   useEffect(() => {
     const id = readParams().get("id");
@@ -26,20 +28,12 @@ export default function GameClient() {
   const { snapshot, status, finished } = useGameSocket({
     gameId,
     demo: false,
-    enabled: started && Boolean(gameId),
+    enabled: Boolean(gameId),
   });
 
   const redScore = snapshot?.teams.find((t) => t.color === "RED")?.score ?? 0;
   const blueScore = snapshot?.teams.find((t) => t.color === "BLUE")?.score ?? 0;
-
-  const timerLabel = useMemo(() => {
-    if (!snapshot?.game.endsAt) return "—:—";
-    const end = new Date(snapshot.game.endsAt).getTime();
-    const sec = Math.max(0, Math.floor((end - Date.now()) / 1000));
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-  }, [snapshot]);
+  const timerLabel = useGameTimer(snapshot?.game.endsAt);
 
   const activeTerritory = snapshot?.territories.find(
     (t) => t.status === "CONTESTED" || t.captureProgress > 0,
@@ -57,6 +51,8 @@ export default function GameClient() {
     );
   }
 
+  const showLost = gameId && !snapshot && status === "offline";
+
   return (
     <GameShell
       hud={
@@ -65,6 +61,7 @@ export default function GameClient() {
             redScore={redScore}
             blueScore={blueScore}
             timerLabel={timerLabel}
+            timerUrgent={timerLabel !== "—:—" && timerLabel.startsWith("00:")}
             sectorLabel={activeTerritory?.id ?? "Sector 01"}
             captureProgress={activeTerritory?.captureProgress ?? 0}
             capturingTeam={capturingTeam === "RED" || capturingTeam === "BLUE" ? capturingTeam : null}
@@ -73,21 +70,26 @@ export default function GameClient() {
         ) : null
       }
     >
-      {!snapshot && status === "offline" ? (
-        gameId ? (
-          <SignalLost onRetry={() => window.location.reload()} />
-        ) : (
-          <ConnectingState />
-        )
+      {!gameId ? <ConnectingState /> : null}
+      {showLost ? <SignalLost onRetry={() => window.location.reload()} /> : null}
+      {!snapshot && status === "reconnecting" ? (
+        <div className="sm-reconnect-banner sm-badge">Reconnecting…</div>
       ) : null}
       <div className="sm-game-viewport">
-        <GameMap snapshot={snapshot} center={snapshot?.game.center} />
+        {gameId ? <GameMap snapshot={snapshot} center={snapshot?.game.center} /> : null}
       </div>
       <style jsx>{`
         .sm-game-viewport {
           position: relative;
           height: 100vh;
           height: 100dvh;
+        }
+        .sm-reconnect-banner {
+          position: fixed;
+          top: calc(var(--sm-nav-height) + var(--sm-safe-top) + 0.5rem);
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 60;
         }
       `}</style>
     </GameShell>

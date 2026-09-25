@@ -3,13 +3,15 @@
 import SectionHeading from "./SectionHeading";
 import GlassPanel from "./GlassPanel";
 import PlayerMarker from "../game/PlayerMarker";
+import RevealOnScroll from "@/components/motion/RevealOnScroll";
 
 const steps = ["Move", "Contest", "Capture", "Control"];
 
 export default function StoryExperience() {
   return (
     <div className="sm-story">
-      <section className="sm-section sm-container" id="world">
+      <section className="sm-section sm-section-bleed sm-container" id="world">
+        <RevealOnScroll>
         <SectionHeading
           eyebrow="Section 01"
           title="The world"
@@ -23,9 +25,11 @@ export default function StoryExperience() {
             <PlayerMarker team="BLUE" />
           </div>
         </GlassPanel>
+        </RevealOnScroll>
       </section>
 
-      <section className="sm-section sm-container" id="teams">
+      <section className="sm-section sm-section-bleed sm-container" id="teams">
+        <RevealOnScroll delayMs={80}>
         <SectionHeading
           eyebrow="Section 02"
           title="Choose your side"
@@ -41,9 +45,11 @@ export default function StoryExperience() {
             <p>Coordinated control. Outmaneuver.</p>
           </GlassPanel>
         </div>
+        </RevealOnScroll>
       </section>
 
-      <section className="sm-section sm-container" id="capture">
+      <section className="sm-section sm-section-bleed sm-container" id="capture">
+        <RevealOnScroll delayMs={120}>
         <SectionHeading
           eyebrow="Section 03"
           title="Claim territory"
@@ -61,9 +67,11 @@ export default function StoryExperience() {
             <div className="sm-story__capture-fill" />
           </div>
         </div>
+        </RevealOnScroll>
       </section>
 
-      <section className="sm-section sm-container">
+      <section className="sm-section sm-section-bleed sm-container">
+        <RevealOnScroll delayMs={80}>
         <SectionHeading
           eyebrow="Section 04"
           title="Play with others"
@@ -76,23 +84,28 @@ export default function StoryExperience() {
             ))}
           </div>
         </GlassPanel>
+        </RevealOnScroll>
       </section>
 
-      <section className="sm-section sm-container">
+      <section className="sm-section sm-section-bleed sm-container">
+        <RevealOnScroll>
         <SectionHeading
           eyebrow="Section 05"
           title="Every second counts"
           subtitle="Battles run on a clock. When time hits zero, the highest score wins."
         />
         <p className="sm-story__timer sm-brand-font">00:00 → BOOM</p>
+        </RevealOnScroll>
       </section>
 
-      <section className="sm-section sm-container sm-story__final" id="enter">
+      <section className="sm-section sm-section-bleed sm-container sm-story__final" id="enter">
+        <RevealOnScroll>
         <SectionHeading align="center" eyebrow="Section 06" title="Enter the battle" />
         <p className="sm-story__ready sm-brand-font">Ready?</p>
         <div className="sm-story__final-cta">
           <a href="#battles" className="sm-story__cta-link sm-brand-font">Play StrikeMap</a>
         </div>
+        </RevealOnScroll>
       </section>
 
       <style jsx>{`

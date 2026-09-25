@@ -8,9 +8,16 @@ import TacticalGrid from "./TacticalGrid";
 type Props = {
   activeBattles?: number;
   demoBattles?: boolean;
+  onPlay?: () => void;
+  onCreate?: () => void;
 };
 
-export default function Hero({ activeBattles = 0, demoBattles = true }: Props) {
+export default function Hero({
+  activeBattles = 0,
+  demoBattles = true,
+  onPlay,
+  onCreate,
+}: Props) {
   const displayCount = demoBattles && activeBattles === 0 ? 12 : activeBattles;
 
   return (
@@ -31,8 +38,8 @@ export default function Hero({ activeBattles = 0, demoBattles = true }: Props) {
             One battlefield.
           </p>
           <div className="sm-hero__cta">
-            <CTAButton href="#battles" variant="primary">Play now</CTAButton>
-            <CTAButton href="#battles" variant="ghost">Create battle</CTAButton>
+            <CTAButton variant="primary" onClick={onPlay}>Play now</CTAButton>
+            <CTAButton variant="ghost" onClick={onCreate}>Create battle</CTAButton>
             <CTAButton href="/demo/" variant="ghost">Watch demo</CTAButton>
           </div>
           <GlassPanel className="sm-hero__stat">

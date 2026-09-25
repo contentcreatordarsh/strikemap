@@ -20,6 +20,13 @@ export const metadata: Metadata = {
     "Turn your city into a live battlefield. Capture territory, team up, and compete in real time.",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover" as const,
+  themeColor: "#030508",
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${display.variable} ${body.variable}`}>

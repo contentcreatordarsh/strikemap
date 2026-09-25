@@ -33,7 +33,7 @@ export default function LiveBattlesSection({ onJoin, onCreate }: Props) {
   }, []);
 
   const loading = battles === null;
-  const isDemo = battles === DEMO_BATTLES || (battles?.every((b) => b.demo) ?? false);
+  const isDemo = Boolean(battles?.length && battles.every((b) => b.demo));
 
   return (
     <section className="sm-section sm-container" id="battles">

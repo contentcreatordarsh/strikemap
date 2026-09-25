@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 import GameShell from "@/components/game/GameShell";
-import GameMap from "@/components/game/GameMap";
 import GameHUD from "@/components/game/GameHUD";
 import { useGameSocket } from "@/hooks/useGameSocket";
+import { useGameTimer } from "@/hooks/useGameTimer";
 import { ConnectingState, SignalLost, BattleComplete } from "@/components/game/ConnectionStates";
 import { api } from "@/lib/api";
 import type { TeamColor } from "@/lib/contracts/game";
+
+const GameMap = dynamic(() => import("@/components/game/GameMap"), { ssr: false });
 
 const DEMO_ID = "demo_city_battle";
 
@@ -32,15 +35,7 @@ export default function DemoClient() {
 
   const redScore = snapshot?.teams.find((t) => t.color === "RED")?.score ?? 0;
   const blueScore = snapshot?.teams.find((t) => t.color === "BLUE")?.score ?? 0;
-
-  const timerLabel = useMemo(() => {
-    if (!snapshot?.game.endsAt) return "—:—";
-    const end = new Date(snapshot.game.endsAt).getTime();
-    const sec = Math.max(0, Math.floor((end - Date.now()) / 1000));
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-  }, [snapshot]);
+  const timerLabel = useGameTimer(snapshot?.game.endsAt);
 
   const activeTerritory = snapshot?.territories.find(
     (t) => t.status === "CONTESTED" || t.captureProgress > 0,
@@ -58,6 +53,8 @@ export default function DemoClient() {
     );
   }
 
+  const showConnecting = !ready || (!snapshot && (status === "offline" || status === "reconnecting"));
+
   return (
     <GameShell
       hud={
@@ -66,6 +63,7 @@ export default function DemoClient() {
             redScore={redScore}
             blueScore={blueScore}
             timerLabel={timerLabel}
+            timerUrgent={timerLabel !== "—:—" && timerLabel.startsWith("00:")}
             sectorLabel={activeTerritory?.id ?? "Sector 01"}
             captureProgress={activeTerritory?.captureProgress ?? 0}
             capturingTeam={capturingTeam === "RED" || capturingTeam === "BLUE" ? capturingTeam : null}
@@ -75,7 +73,7 @@ export default function DemoClient() {
       }
     >
       <div className="sm-demo-banner sm-badge">Demo mode — simulated battle</div>
-      {!ready || (!snapshot && status === "offline") ? (
+      {showConnecting ? (
         initError ? (
           <SignalLost onRetry={() => window.location.reload()} />
         ) : (
@@ -83,12 +81,12 @@ export default function DemoClient() {
         )
       ) : null}
       <div className="sm-game-viewport">
-        <GameMap snapshot={snapshot} />
+        {ready ? <GameMap snapshot={snapshot} /> : null}
       </div>
       <style jsx>{`
         .sm-demo-banner {
           position: fixed;
-          top: calc(var(--sm-nav-height) + 0.5rem);
+          top: calc(var(--sm-nav-height) + var(--sm-safe-top) + 0.5rem);
           left: 50%;
           transform: translateX(-50%);
           z-index: 60;

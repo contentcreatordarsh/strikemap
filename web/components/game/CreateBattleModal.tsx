@@ -26,7 +26,7 @@ export default function CreateBattleModal({ open, onClose, onSubmit }: Props) {
   return (
     <div className="sm-modal-backdrop" role="presentation" onClick={onClose}>
       <div
-        className="sm-modal"
+        className="sm-modal sm-modal-enter"
         role="dialog"
         aria-labelledby="create-battle-title"
         onClick={(e) => e.stopPropagation()}

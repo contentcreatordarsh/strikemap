@@ -42,7 +42,7 @@ export default function AuthModal({ open, onClose, onSuccess }: Props) {
 
   return (
     <div className="sm-modal-backdrop" role="presentation" onClick={onClose}>
-      <div className="sm-modal" role="dialog" onClick={(e) => e.stopPropagation()}>
+      <div className="sm-modal sm-modal-enter" role="dialog" onClick={(e) => e.stopPropagation()}>
         <GlassPanel>
           <h2 className="sm-brand-font sm-modal__title">
             {mode === "login" ? "Login" : "Create account"}

@@ -1,6 +1,14 @@
 "use client";
 
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import {
+  useCallback,
+  useRef,
+  type ButtonHTMLAttributes,
+  type ReactNode,
+  type RefObject,
+  type MouseEvent,
+} from "react";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 type Variant = "primary" | "ghost" | "danger";
 
@@ -19,11 +27,37 @@ export default function CTAButton({
   className = "",
   ...rest
 }: Props) {
+  const reduced = usePrefersReducedMotion();
+  const ref = useRef<HTMLButtonElement | HTMLAnchorElement>(null);
   const classes = `sm-cta sm-cta--${variant} ${fullWidth ? "sm-cta--full" : ""} ${className}`.trim();
+
+  const onMagneticMove = useCallback(
+    (e: MouseEvent) => {
+      if (reduced || variant !== "primary") return;
+      const el = ref.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+      el.style.transform = `translate(${x * 0.12}px, ${y * 0.12}px)`;
+    },
+    [reduced, variant],
+  );
+
+  const onMagneticLeave = useCallback(() => {
+    const el = ref.current;
+    if (el) el.style.transform = "";
+  }, []);
 
   if (href) {
     return (
-      <a href={href} className={classes}>
+      <a
+        ref={ref as RefObject<HTMLAnchorElement>}
+        href={href}
+        className={classes}
+        onMouseMove={onMagneticMove}
+        onMouseLeave={onMagneticLeave}
+      >
         <span className="sm-cta__label">{children}</span>
         <style jsx>{ctaStyles}</style>
       </a>
@@ -31,7 +65,14 @@ export default function CTAButton({
   }
 
   return (
-    <button type="button" className={classes} {...rest}>
+    <button
+      ref={ref as RefObject<HTMLButtonElement>}
+      type="button"
+      className={classes}
+      onMouseMove={onMagneticMove}
+      onMouseLeave={onMagneticLeave}
+      {...rest}
+    >
       <span className="sm-cta__label">{children}</span>
       <style jsx>{ctaStyles}</style>
     </button>

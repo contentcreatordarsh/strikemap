@@ -28,13 +28,15 @@ export function useGameSocket(opts: { gameId: string; demo?: boolean; enabled: b
   const lastSequenceRef = useRef(0);
   const wsRef = useRef<WebSocket | null>(null);
   const retryRef = useRef(0);
+  const retryTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!opts.enabled) return;
+    if (!opts.enabled || !opts.gameId) return;
     let cancelled = false;
     let watchId: number | null = null;
 
     const connect = async () => {
+      if (cancelled) return;
       setStatus(retryRef.current > 0 ? "reconnecting" : "offline");
       let protocols: string[] = [WS_PROTOCOL_VERSION];
       if (!opts.demo) {
@@ -56,11 +58,14 @@ export function useGameSocket(opts: { gameId: string; demo?: boolean; enabled: b
         setStatus("live");
       };
       ws.onclose = () => {
-        setStatus("offline");
-        if (!cancelled) {
-          retryRef.current += 1;
-          window.setTimeout(() => void connect(), Math.min(8000, 500 * retryRef.current));
-        }
+        wsRef.current = null;
+        if (cancelled) return;
+        setStatus(retryRef.current > 0 ? "reconnecting" : "offline");
+        retryRef.current += 1;
+        retryTimerRef.current = window.setTimeout(
+          () => void connect(),
+          Math.min(8000, 500 * retryRef.current),
+        );
       };
       ws.onmessage = (ev) => {
         const msg = JSON.parse(ev.data) as GameMessage;
@@ -123,8 +128,10 @@ export function useGameSocket(opts: { gameId: string; demo?: boolean; enabled: b
 
     return () => {
       cancelled = true;
+      if (retryTimerRef.current) window.clearTimeout(retryTimerRef.current);
       if (watchId !== null) navigator.geolocation.clearWatch(watchId);
       wsRef.current?.close();
+      wsRef.current = null;
     };
   }, [opts.gameId, opts.demo, opts.enabled]);
 

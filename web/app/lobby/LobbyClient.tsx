@@ -36,6 +36,14 @@ export default function LobbyClient() {
           setLoading(false);
           return;
         }
+        const token = typeof window !== "undefined" ? localStorage.getItem("sm_bearer_token") : null;
+        if (token && joinCode && !id) {
+          try {
+            await api(`/api/v1/games/${joinCode}/join`, { method: "POST", body: "{}" });
+          } catch {
+            /* may already be a member */
+          }
+        }
         const data = await api<{
           game: { id: string; code: string };
           teams: { color: string; playerCount: number }[];

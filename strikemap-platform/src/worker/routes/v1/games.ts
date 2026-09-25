@@ -103,6 +103,54 @@ v1GameRoutes.post("/", async (c) => {
   });
 });
 
+v1GameRoutes.get("/public", async (c) => {
+  const rows = await c.env.DB.prepare(
+    `SELECT id, join_code, location_name, status, duration_sec, started_at, created_at
+     FROM games
+     WHERE status IN ('lobby', 'countdown', 'active')
+     ORDER BY created_at DESC
+     LIMIT 24`,
+  ).all<{
+    id: string;
+    join_code: string;
+    location_name: string | null;
+    status: string;
+    duration_sec: number;
+    started_at: number | null;
+    created_at: number;
+  }>();
+
+  const battles = [];
+  for (const row of rows.results ?? []) {
+    const counts = await c.env.DB.prepare(
+      `SELECT team, COUNT(*) as c FROM game_players WHERE game_id = ? GROUP BY team`,
+    )
+      .bind(row.id)
+      .all<{ team: string; c: number }>();
+    const playerCounts = emptyScores();
+    for (const r of counts.results ?? []) {
+      playerCounts[teamColorFromDb(r.team)] = r.c;
+    }
+    let remainingSec = row.duration_sec;
+    if (row.started_at) {
+      const ends = row.started_at + row.duration_sec * 1000;
+      remainingSec = Math.max(0, Math.floor((ends - Date.now()) / 1000));
+    }
+    const m = Math.floor(remainingSec / 60);
+    const s = remainingSec % 60;
+    battles.push({
+      id: row.id,
+      title: row.location_name?.trim() || `Battle ${row.join_code}`,
+      redCount: playerCounts.RED,
+      blueCount: playerCounts.BLUE,
+      timeRemaining: `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")} remaining`,
+      joinCode: row.join_code,
+      demo: false,
+    });
+  }
+  return apiOk(c, { battles });
+});
+
 v1GameRoutes.get("/:gameId", async (c) => {
   const row = await loadGame(c.env, c.req.param("gameId"));
   if (!row) return apiErr(c, "GAME_NOT_FOUND", "Game does not exist", 404);

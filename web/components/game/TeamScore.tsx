@@ -1,14 +1,17 @@
+"use client";
+
+import AnimatedNumber from "@/components/motion/AnimatedNumber";
+
 type Props = {
   team: "RED" | "BLUE";
   score: number;
 };
 
 export default function TeamScore({ team, score }: Props) {
-  const isRed = team === "RED";
   return (
     <div className={`sm-team-score sm-team-score--${team.toLowerCase()}`}>
       <span className="sm-team-score__label sm-brand-font">{team}</span>
-      <span className="sm-team-score__value">{score.toLocaleString()}</span>
+      <AnimatedNumber value={score} className="sm-team-score__value" />
       <style jsx>{`
         .sm-team-score {
           display: flex;
@@ -20,20 +23,20 @@ export default function TeamScore({ team, score }: Props) {
           font-size: 0.65rem;
           letter-spacing: 0.14em;
         }
-        .sm-team-score__value {
+        .sm-team-score :global(.sm-team-score__value) {
           font-family: var(--sm-font-display);
           font-size: 1.5rem;
           font-weight: 700;
         }
         .sm-team-score--red .sm-team-score__label,
-        .sm-team-score--red .sm-team-score__value {
+        .sm-team-score--red :global(.sm-team-score__value) {
           color: var(--sm-team-red);
         }
         .sm-team-score--blue {
           text-align: right;
         }
         .sm-team-score--blue .sm-team-score__label,
-        .sm-team-score--blue .sm-team-score__value {
+        .sm-team-score--blue :global(.sm-team-score__value) {
           color: var(--sm-team-blue);
         }
       `}</style>

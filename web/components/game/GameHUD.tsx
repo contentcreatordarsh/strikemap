@@ -6,6 +6,7 @@ type Props = {
   redScore: number;
   blueScore: number;
   timerLabel: string;
+  timerUrgent?: boolean;
   sectorLabel?: string;
   captureProgress?: number;
   capturingTeam?: "RED" | "BLUE" | null;
@@ -16,6 +17,7 @@ export default function GameHUD({
   redScore,
   blueScore,
   timerLabel,
+  timerUrgent,
   sectorLabel = "Sector 01",
   captureProgress = 0,
   capturingTeam,
@@ -25,7 +27,7 @@ export default function GameHUD({
     <div className="sm-game-hud">
       <header className="sm-game-hud__top sm-glass-panel">
         <TeamScore team="RED" score={redScore} />
-        <GameTimer label={timerLabel} />
+        <GameTimer label={timerLabel} variant={timerUrgent ? "urgent" : "default"} />
         <TeamScore team="BLUE" score={blueScore} />
       </header>
       <footer className="sm-game-hud__bottom">
@@ -46,6 +48,8 @@ export default function GameHUD({
           flex-direction: column;
           justify-content: space-between;
           padding: var(--sm-space-md);
+          padding-top: calc(var(--sm-space-md) + var(--sm-safe-top));
+          padding-bottom: calc(var(--sm-space-md) + var(--sm-safe-bottom));
         }
         .sm-game-hud__top {
           pointer-events: auto;
@@ -57,6 +61,12 @@ export default function GameHUD({
           max-width: 640px;
           margin: 0 auto;
           width: 100%;
+        }
+        @media (max-width: 390px) {
+          .sm-game-hud__top {
+            padding: 0.5rem 0.75rem;
+            gap: 0.35rem;
+          }
         }
         .sm-game-hud__bottom {
           pointer-events: auto;

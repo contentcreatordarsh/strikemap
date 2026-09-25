@@ -42,7 +42,8 @@ export default function SiteNav() {
           left: 0;
           right: 0;
           z-index: 100;
-          height: var(--sm-nav-height);
+          height: calc(var(--sm-nav-height) + var(--sm-safe-top));
+          padding-top: var(--sm-safe-top);
           display: flex;
           align-items: center;
           border-bottom: 1px solid var(--sm-border);
