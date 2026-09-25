@@ -1,6 +1,8 @@
 # StrikeMap web (Next.js)
 
-MapLibre-based live-intelligence demo UI for **strikemap.space**, exported as static HTML/JS and served from:
+Premium marketing + game shell for **strikemap.space** (cinematic landing, demo, lobby, live map). Connects to `strikemap-platform` when `NEXT_PUBLIC_API_URL` is set (e.g. `https://strikemap.space`).
+
+MapLibre-based live-intelligence demo remains at **`/map/`**. Exported as static HTML/JS and served from:
 
 - **Cloudflare Worker** `strikemap-gateway` assets (~95% path when routes are attached)
 - **EC2 origin** `origin/web_export/` (~5% / fallback when apex proxies to origin)
