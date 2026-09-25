@@ -1,0 +1,23 @@
+{
+  "name": "StrikeMap",
+  "install": "bash .cursor/install.sh",
+  "terminals": [
+    {
+      "name": "platform (8787)",
+      "command": "cd strikemap-platform && npx wrangler dev --local --port 8787"
+    },
+    {
+      "name": "web (3000)",
+      "command": "cd web && npm run dev"
+    },
+    {
+      "name": "origin (8080)",
+      "command": "cd origin && ./.venv/bin/python app.py"
+    }
+  ],
+  "ports": [
+    { "name": "platform", "port": 8787 },
+    { "name": "web", "port": 3000 },
+    { "name": "origin", "port": 8080 }
+  ]
+}
